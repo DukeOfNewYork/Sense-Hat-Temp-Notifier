@@ -112,4 +112,3 @@ while running:
         
         if event.type == QUIT:
             running = False
-            print("BYE")
