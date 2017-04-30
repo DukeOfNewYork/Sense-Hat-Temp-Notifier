@@ -9,6 +9,8 @@ from pygame.locals import *
 from sense_emu import SenseHat
 sense = SenseHat()
 
+#This is all web server setup, this has been speficially used with Gmail
+#msg is the primary temprature alert message while msgTest is just a message sent when pressing down the control stick
 fromaddr = 'E-Mail Address that the message will be sent to'
 toaddrs  = 'E-Mail Address that you want to alert'
 msg = 'The Pimary Message'
@@ -17,17 +19,19 @@ username = 'E-Mail UserName'
 password = 'E-Mail Password'
 server = smtplib.SMTP('SMTP address and port',587)
 
-offset = #The Sense Hat is accurate but normaly a few degrees off, put a int here to compensate for that
+offset = 0 #The Sense Hat is accurate but normaly a few degrees off, put a int here to compensate for that
 
+#the size of the "input box"
 pygame.init()
 pygame.display.set_mode((640, 480))
 
-running = True
+
 alertTmp = 80
 
+#these are the two display colors, b is the number and e is the background
 b = (0, 0, 255)
 e = (0, 0, 0)
-
+#the array of display numbers
 frame = [[b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
 [e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
 [b,b,b,e,e,e,e,e,e,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,b,e,e,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
@@ -39,6 +43,9 @@ frame = [[b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,
 [b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
 [b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e]]
 
+running = True
+#pulls the temprature data from the Sensehats two temprature sensors and averages them out together then returns.
+#POS is the position of the left or right numeral
 def getTmp (pos, tmpOffset=offset):
     celsiusH = sense.get_temperature_from_humidity()
     celsiusP = sense.get_temperature_from_pressure()
@@ -49,6 +56,7 @@ def getTmp (pos, tmpOffset=offset):
     tempCombined = (tempP + tempH)/2-tmpOffset
     return tempCombined;
         
+#gets the temp then splits it depending on the position, after it gets the left and right position it loops over and combines the frames
 def setDisplay (tmp,pos):
     num=[]
     tmp = str(tmp)
