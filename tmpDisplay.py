@@ -1,122 +1,108 @@
-import pygame
 import time
 import socket
 import math
 import smtplib
 
-
-from pygame.locals import *
 from sense_emu import SenseHat
+
 sense = SenseHat()
 
-#This is all web server setup, this has been speficially used with Gmail
-#msg is the primary temprature alert message while msgTest is just a message sent when pressing down the control stick
-fromaddr = 'E-Mail Address that the message will be sent to'
-toaddrs  = 'E-Mail Address that you want to alert'
-msg = 'The Pimary Message'
-msgTest = 'Message sent when pressing the Sense Hat stick down'
-username = 'E-Mail UserName'
-password = 'E-Mail Password'
-server = smtplib.SMTP('SMTP address and port',587)
+msg = 'A simple test of the email protocol'
 
-offset = 0 #The Sense Hat is accurate but normaly a few degrees off, put a int here to compensate for that
+# The Sense Hat is accurate but normaly a few degrees off, put a int here to compensate for that
+offset = 0
 
-#the size of the "input box"
-pygame.init()
-pygame.display.set_mode((640, 480))
-
-
+#The temprature that the system sends an alert e-mail
 alertTmp = 80
 
-#these are the two display colors, b is the number and e is the background
+# these are the two display colors, b is the number and e is the background
 b = (0, 0, 255)
 e = (0, 0, 0)
-#the array of display numbers
-frame = [[b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
-[e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
-[b,b,b,e,e,e,e,e,e,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,b,e,e,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
-[b,b,b,e,e,e,e,e,e,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
-[b,e,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
-[b,b,b,e,e,e,e,e,b,e,e,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
-[b,b,b,e,e,e,e,e,b,e,e,e,e,e,e,e,b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
-[b,b,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
-[b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e],
-[b,b,b,e,e,e,e,e,b,e,b,e,e,e,e,e,b,b,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,b,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e]]
+# the array of display numbers represting each number 0-9, the makeDisplay function turns each 1 to b and each 0 to e
+frame = [0B1110000010100000101000001010000011100000000000000000000000000000,
+         0B0010000000100000001000000010000000100000000000000000000000000000,
+         0B1110000000100000111000001000000011100000000000000000000000000000,
+         0B1110000000100000111000000010000011100000000000000000000000000000,
+         0B1010000010100000111000000010000000100000000000000000000000000000,
+         0B1110000010000000111000000010000011100000000000000000000000000000,
+         0B1110000010000000111000001010000011100000000000000000000000000000,
+         0B1110000000100000001000000010000000100000000000000000000000000000,
+         0B1110000010100000111000001010000011100000000000000000000000000000,
+         0B1110000010100000111000000010000000100000000000000000000000000000]
+
+
 
 running = True
-#pulls the temprature data from the Sensehats two temprature sensors and averages them out together then returns.
-#POS is the position of the left or right numeral
-def getTmp (pos, tmpOffset=offset):
+gyroRoll = 0
+displayArray = 0
+
+# This is all web server setup, this has been speficially used with Gmail
+# msg is the primary temprature alert message while msgTest is just a message sent when pressing down the control stick
+# fromaddr = 'E-Mail Address that the message will be sent to'
+# toaddrs  = 'E-Mail Address that you want to alert'
+# username = 'E-Mail UserName'
+# password = 'E-Mail Password'
+# server = smtplib.SMTP('SMTP address and port',587)
+
+# This works with Gmail but may need to be adjusted for other e-mail salutions
+#def sendemail(accountName, accountPassword, emailFromAdress, emailToAdresss, emailMessage):
+#    server.ehlo()
+#    server.starttls()
+#    server.login(accountName, accountPassword)
+#    server.sendmail(emailFromAdress, emailToAdresss, emailMessage)
+#    server.quit()
+
+
+# Pings a known local address to return a local IP address
+def getip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("known internal IP address", 80))
+    return (s.getsockname()[0])
+
+
+# Takes a input temprature, uses this to get the 10's and 1's place, then uses each of those numbers to select a frame, then combines the frames using | (or) and outputs that.
+def setdisplaybits(tmp):
+    if tmp > 99:
+        tmp = 99
+    num = 0
+    mulando = (tmp % 10)
+    num = (frame[int((tmp - mulando) / 10)]) | (frame[mulando] >> 4)
+    return num
+
+
+def gettmp(tmpOffset=0):
     celsiusH = sense.get_temperature_from_humidity()
     celsiusP = sense.get_temperature_from_pressure()
-    tempH = 9.0/5.0 * celsiusH + 32
-    tempP = 9.0/5.0 * celsiusP + 32
+    tempH = 9.0 / 5.0 * celsiusH + 32
+    tempP = 9.0 / 5.0 * celsiusP + 32
     tempH = int(tempH)
     tempP = int(tempP)
-    tempCombined = (tempP + tempH)/2-tmpOffset
-    return tempCombined;
-        
-#gets the temp then splits it depending on the position, after it gets the left and right position it loops over and combines the frames
-def setDisplay (tmp,pos):
-    num=[]
-    tmp = str(tmp)
-    if pos == 0:
-        num=frame[int(tmp[0])]
-    elif pos == 1:
-        for x in range(0,64):
-            num.append(e)
-        for y in range(0,60):
-            if frame[int(tmp[1])][y]==b:
-                num[y+4]=b
-    else:
-        num= 0
-    return num;
+    tempCombined = (tempP + tempH) / 2 - tmpOffset
+    return int(tempCombined)
+
+
+def makedisplay(insBin):
+    finalDisplay = []
+    inBin = '{:064b}'.format(insBin)
+    for x in range(0, 64):
+        if inBin[x] == '0':
+            finalDisplay.append(e)
+        else:
+            finalDisplay.append(b)
+    return finalDisplay
 
 
 while running:
-    leftNum=[]
-    rightNum=[]
-
-    leftNum=setDisplay(getTmp(0),0)
-    rightNum=setDisplay(getTmp(1),1)
-
-                    
+    temp = gettmp()
+    displayarray = (setdisplaybits(temp))
     sense.clear
-    
-
-    DisplayNum=[]
-    for x in range(0,64):
-     if leftNum[x]==b or rightNum[x]==b:
-         DisplayNum.append(b)
-     else:
-         DisplayNum.append(e)
-    sense.set_pixels(DisplayNum)
-    for event in pygame.event.get():
-        if event.type == KEYDOWN:
-            
-
-            if event.key == K_DOWN:
-                server.ehlo()
-                server.starttls()
-                server.login(username,password)
-                server.sendmail(fromaddr, toaddrs, msgTest)
-                server.quit()
-               
-            elif event.key == K_UP:
-                x=x+x
-            elif event.key == K_RIGHT:
-                x=x+1
-            elif event.key == K_LEFT:
-                x=x+1
-            elif event.key == K_RETURN:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect(("cravencc.edu",80))
-                name=(s.getsockname()[0])
-                sense.show_message(name,text_colour=[255,255,255])
-
-                
-                  
-
-        
-        if event.type == QUIT:
-            running = False
+    sense.set_pixels(makedisplay(displayarray))
+    for event in sense.stick.get_events():
+        print((event.action, event.direction))
+#        if (event.action == 'pressed' and event.direction == 'up'):
+#            sendemail(username, password, username, toaddrs, msg)
+        elif (event.action == 'pressed' and event.direction == 'down'):
+            sense.show_message(temp)
+#        elif (event.action == 'pressed' and event.direction == 'middle'):
+#            msgReport = 'my IP address is ' + str(getip()) + ' and the temp is ' + str(temp)
+#            sendemail(username, password, username, toaddrs, msgReport)
