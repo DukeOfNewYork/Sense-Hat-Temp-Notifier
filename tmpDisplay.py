@@ -69,7 +69,7 @@ def setdisplaybits(tmp):
     num = (frame[int((tmp - mulando) / 10)]) | (frame[mulando] >> 4)
     return num
 
-
+#Takes the temprature of both the humidity sensor and the regular temprature sensore and averages them out then converts to Fahrenheit then adds the temprature offset variable.
 def gettmp(tmpOffset=0):
     celsiusH = sense.get_temperature_from_humidity()
     celsiusP = sense.get_temperature_from_pressure()
@@ -77,10 +77,10 @@ def gettmp(tmpOffset=0):
     tempP = 9.0 / 5.0 * celsiusP + 32
     tempH = int(tempH)
     tempP = int(tempP)
-    tempCombined = (tempP + tempH) / 2 - tmpOffset
+    tempCombined = (tempP + tempH) / 2 + tmpOffset
     return int(tempCombined)
 
-
+#takes both an array (the display array) then converts it from binary to a list of the variable e and b, which both contain color information, that the display can use.
 def makedisplay(insBin):
     finalDisplay = []
     inBin = '{:064b}'.format(insBin)
@@ -91,18 +91,22 @@ def makedisplay(insBin):
             finalDisplay.append(b)
     return finalDisplay
 
-
+#the e-mail statements are commented out so it will still run even if those values aren't configured.
 while running:
     temp = gettmp()
+#msgReport combines the local IP and temprature info for easy e-mailing.
+    msgReport = 'my IP address is ' + str(getip()) + ' and the temp is ' + str(temp)
     displayarray = (setdisplaybits(temp))
     sense.clear
     sense.set_pixels(makedisplay(displayarray))
+#This sends a e-mail if the temprature is above the alert temprature
+#    if (temp > alertTmp)
+#         sendemail(username, password, username, toaddrs, msgReport)
     for event in sense.stick.get_events():
         print((event.action, event.direction))
-#        if (event.action == 'pressed' and event.direction == 'up'):
-#            sendemail(username, password, username, toaddrs, msg)
-        elif (event.action == 'pressed' and event.direction == 'down'):
+         if (event.action == 'pressed' and event.direction == 'down'):
             sense.show_message(temp)
+#        elif (event.action == 'pressed' and event.direction == 'up'):
+#            sendemail(username, password, username, toaddrs, msg)
 #        elif (event.action == 'pressed' and event.direction == 'middle'):
-#            msgReport = 'my IP address is ' + str(getip()) + ' and the temp is ' + str(temp)
 #            sendemail(username, password, username, toaddrs, msgReport)
