@@ -1,8 +1,8 @@
 import time
 import socket
 import math
-import tmpemail
-from tmpemail import sendemail
+import senseemail
+from senseemail import sendemail
 
 from sense_hat import SenseHat
 
