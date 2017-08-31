@@ -1,9 +1,10 @@
 import time
 import socket
 import math
-import smtplib
+import tmpemail
+from tmpemail import sendemail
 
-from sense_emu import SenseHat
+from sense_hat import SenseHat
 
 sense = SenseHat()
 
@@ -30,33 +31,14 @@ frame = [0B1110000010100000101000001010000011100000000000000000000000000000,
          0B1110000010100000111000001010000011100000000000000000000000000000,
          0B1110000010100000111000000010000000100000000000000000000000000000]
 
-
-
-running = True
 gyroRoll = 0
 displayArray = 0
-
-# This is all web server setup, this has been speficially used with Gmail
-# msg is the primary temprature alert message while msgTest is just a message sent when pressing down the control stick
-# fromaddr = 'E-Mail Address that the message will be sent to'
-# toaddrs  = 'E-Mail Address that you want to alert'
-# username = 'E-Mail UserName'
-# password = 'E-Mail Password'
-# server = smtplib.SMTP('SMTP address and port',587)
-
-# This works with Gmail but may need to be adjusted for other e-mail salutions
-#def sendemail(accountName, accountPassword, emailFromAdress, emailToAdresss, emailMessage):
-#    server.ehlo()
-#    server.starttls()
-#    server.login(accountName, accountPassword)
-#    server.sendmail(emailFromAdress, emailToAdresss, emailMessage)
-#    server.quit()
-
 
 # Pings a known local address to return a local IP address
 def getip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("known internal IP address", 80))
+    # replace 127.0.0.1 with a known internal IP address
+    s.connect(("127.0.0.1", 80))
     return (s.getsockname()[0])
 
 
@@ -91,22 +73,29 @@ def makedisplay(insBin):
             finalDisplay.append(b)
     return finalDisplay
 
-#the e-mail statements are commented out so it will still run even if those values aren't configured.
-while running:
-    temp = gettmp()
-#msgReport combines the local IP and temprature info for easy e-mailing.
-    msgReport = 'my IP address is ' + str(getip()) + ' and the temp is ' + str(temp)
-    displayarray = (setdisplaybits(temp))
+def pixledisplay(currenttemp):
+    displayarray = (setdisplaybits(currenttemp))
     sense.clear
     sense.set_pixels(makedisplay(displayarray))
+
+#the e-mail statements are commented out so it will still run even if those values aren't configured.
+while True:
+    temp = gettmp()
+#msgReport combines the local IP and temprature info for easy e-mailing.
+    #msgReport = 'my IP address is ' + str(getip()) + ' and the temp is ' + str(temp)
+    pixledisplay(temp)
 #This sends a e-mail if the temprature is above the alert temprature
-#    if (temp > alertTmp)
-#         sendemail(username, password, username, toaddrs, msgReport)
+    if (temp > alertTmp):
+#         sendemail(msgReport)
+        while temp > alertTmp:
+             temp = gettmp()
+             b = (255, 0, 0)
+             pixledisplay(temp)
     for event in sense.stick.get_events():
         print((event.action, event.direction))
-         if (event.action == 'pressed' and event.direction == 'down'):
+        if (event.action == 'pressed' and event.direction == 'down'):
             sense.show_message(temp)
-#        elif (event.action == 'pressed' and event.direction == 'up'):
-#            sendemail(username, password, username, toaddrs, msg)
-#        elif (event.action == 'pressed' and event.direction == 'middle'):
-#            sendemail(username, password, username, toaddrs, msgReport)
+#       elif (event.action == 'pressed' and event.direction == 'up'):
+#            sendemail(msg)
+#       elif (event.action == 'pressed' and event.direction == 'middle'):
+#            sendemail(msgReport)
