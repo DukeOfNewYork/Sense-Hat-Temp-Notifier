@@ -92,10 +92,8 @@ while True:
     # This sends a e-mail if the temperature is above the alert temprature
     if (temp > alertTmp):
         sendemail(msgReport)
-        while temp > alertTmp:
-            temp = gettmp()
-            highlight = (255, 0, 0)
-            pixledisplay(temp)
+        highlight = (255, 0, 0)
+    #This runs a check for the joystick inputs
     for event in sense.stick.get_events():
         print((event.action, event.direction))
         # When down is pressed it'll reset the color from the alert red
