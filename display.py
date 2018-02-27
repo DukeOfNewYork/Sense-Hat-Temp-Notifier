@@ -20,15 +20,13 @@ frame = [0B1110000010100000101000001010000011100000000000000000000000000000,
          0B1110000010100000111000001010000011100000000000000000000000000000,
          0B1110000010100000111000000010000000100000000000000000000000000000]
 
-displayArray = 0
 highlight = settings['primary']
 background = settings['secondary']
 
 # Pings a known local address to return a local IP address
 def getip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # replace 127.0.0.1 with a known internal IP address
-    s.connect(("127.0.0.1", 80))
+    s.connect((settings['default_gateway'], 80))
     return (s.getsockname()[0])
 
 
@@ -36,7 +34,8 @@ def getip():
 def setdisplaybits(tmp):
     if tmp > 99:
         tmp = 99
-    num = 0
+    elif tmp < 0:
+        tmp = 0
     mulando = (tmp % 10)
     num = (frame[int((tmp - mulando) / 10)]) | (frame[mulando] >> 4)
     return num
@@ -46,10 +45,8 @@ def setdisplaybits(tmp):
 def gettmp(tmpOffset=0):
     celsiusH = sense.get_temperature_from_humidity()
     celsiusP = sense.get_temperature_from_pressure()
-    tempH = 9.0 / 5.0 * celsiusH + 32
-    tempP = 9.0 / 5.0 * celsiusP + 32
-    tempH = int(tempH)
-    tempP = int(tempP)
+    tempH = int(9.0 / 5.0 * celsiusH + 32)
+    tempP = int(9.0 / 5.0 * celsiusP + 32)
     tempCombined = (tempP + tempH) / 2 + tmpOffset
     return int(tempCombined)
 
@@ -67,9 +64,8 @@ def makedisplay(insBin):
 
 
 def pixledisplay(currenttemp):
-    displayarray = (setdisplaybits(currenttemp))
     sense.clear
-    sense.set_pixels(makedisplay(displayarray))
+    sense.set_pixels(makedisplay(setdisplaybits(currenttemp)))
 
 
 # the e-mail statements are commented out so it will still run even if those values aren't configured.
@@ -86,7 +82,7 @@ while True:
     for event in sense.stick.get_events():
         # When down is pressed it'll reset the color from the alert red
         if (event.action == 'pressed' and event.direction == 'down'):
-            sense.show_message("Reset")
+            sense.show_message("RS")
             highlight = settings['primary']
         elif (event.action == 'pressed' and event.direction == 'up'):
             sense.show_message(sendemail(settings['email_message']))
