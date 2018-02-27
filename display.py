@@ -4,21 +4,10 @@ from sense_emu import SenseHat
 
 from senseemail import sendemail
 
+from settings import all_settings as settings
+
 sense = SenseHat()
 
-msg = 'A simple test of the email protocol'
-
-# The Sense Hat is accurate but normally a few degrees off, put a int here to compensate for that
-offset = 0
-
-# The temperature that the system sends an alert e-mail
-alertTmp = 80
-
-# these are the two display colors, highlight is the highlighted area and background is the background
-primary = (0, 0, 255)
-secondary = (0, 0, 0)
-highlight = primary
-background = secondary
 # the array of display numbers repressing each number 0-9, the makeDisplay function turns each 1 to b and each 0 to e
 frame = [0B1110000010100000101000001010000011100000000000000000000000000000,
          0B0010000000100000001000000010000000100000000000000000000000000000,
@@ -31,9 +20,9 @@ frame = [0B1110000010100000101000001010000011100000000000000000000000000000,
          0B1110000010100000111000001010000011100000000000000000000000000000,
          0B1110000010100000111000000010000000100000000000000000000000000000]
 
-gyroRoll = 0
 displayArray = 0
-
+highlight = settings['primary']
+background = settings['secondary']
 
 # Pings a known local address to return a local IP address
 def getip():
@@ -90,17 +79,16 @@ while True:
     msgReport = 'my IP address is ' + str(getip()) + ' and the temp is ' + str(temp)
     pixledisplay(temp)
     # This sends a e-mail if the temperature is above the alert temprature
-    if (temp > alertTmp):
+    if (temp > settings['alert_temprature']):
         sendemail(msgReport)
         highlight = (255, 0, 0)
     #This runs a check for the joystick inputs
     for event in sense.stick.get_events():
-        print((event.action, event.direction))
         # When down is pressed it'll reset the color from the alert red
         if (event.action == 'pressed' and event.direction == 'down'):
             sense.show_message("Reset")
-            highlight = primary
+            highlight = settings['primary']
         elif (event.action == 'pressed' and event.direction == 'up'):
-            sense.show_message(sendemail(msg))
+            sense.show_message(sendemail(settings['email_message']))
         elif (event.action == 'pressed' and event.direction == 'middle'):
             sense.show_message(sendemail(msgReport))
